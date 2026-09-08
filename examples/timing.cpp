@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #include <divsufsort.h>
-
+#include <omp.h>
 
 using namespace std;
 
@@ -22,10 +22,12 @@ size_t getPeakRSS() {
 }
 
 int main(int argc, char* args[]) {
-	if (argc != 2) {
-		cout << "Expected one argument (input file)."
-			<< endl;	
+	if (argc < 2 || argc > 3) {
+		cout << "Expected one argument (input file), plus an optional thread count." << endl;
 		return -1;
+	}
+	if (argc == 3) {
+		omp_set_num_threads(std::stoi(args[2]));
 	}
 	std::cout.precision(4);
 	string text;
