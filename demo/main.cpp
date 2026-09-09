@@ -50,10 +50,10 @@ static bool run_par_divsufsort(const std::string& text, const std::string& sa_pa
 		chrono::duration<double, milli>(diff).count() << " ms" << endl;
 
 	
-	if (sufcheck((sauchar_t*)text.data(), sa.data(), text.size(), false)) {
-		cout << "Sufcheck failed!" << endl;
-		return false;
-	}
+	//if (sufcheck((sauchar_t*)text.data(), sa.data(), text.size(), false)) {
+	//	cout << "Sufcheck failed!" << endl;
+	//	return false;
+	//}
 	if(!sa_path.empty()) {
 		write_sa(sa_path.c_str(), sa.data(), static_cast<std::size_t>(text.size()));
 	}

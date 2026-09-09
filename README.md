@@ -26,8 +26,28 @@ To change this setting edit parallelization settings in the CMakeLists.txt file.
 
 Getting Started
 ==========
-An example application can be found in examples/main.cpp.
-The library provides two basic functions to build the suffix array over a text.
+The project builds a demo driver in `demo/main.cpp`, which is compiled as the `pardss` executable.
+
+After configuring and building the project:
+
+```shell
+mkdir build
+cd build
+cmake ..
+make
+```
+
+The demo expects a single required positional argument: the input file path. It optionally accepts a binary suffix-array output path via `-w/--output` and a thread count via `-t/--threads`.
+
+```shell
+./demo/pardss input.txt
+./demo/pardss input.txt -t 8
+./demo/pardss input.txt -w sa.bin -t 16
+```
+
+If the input length fits in 32 bits, the program uses a 32-bit index type; otherwise it falls back to 64-bit indices.
+
+The library itself exposes the following core functions:
 
 ```c++
 // 32 bit version.
