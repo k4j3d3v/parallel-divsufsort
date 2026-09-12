@@ -87,7 +87,7 @@ int main(int argc, char* args[]) {
 
 	string text;
 	{ // Read input file.
-		ifstream input_file(args[1]);
+		ifstream input_file(input_path);
 		input_file.seekg(0, ios::end);   
 		text.reserve(input_file.tellg());
 		input_file.seekg(0, ios::beg);
