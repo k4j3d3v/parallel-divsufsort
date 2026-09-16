@@ -12,6 +12,7 @@
 
 #include <omp.h>
 #include <CLI11.hpp>
+#include <par_plcp.hpp>
 
 using namespace std;
 
@@ -32,7 +33,7 @@ static void write_sa(const char* filename, const idx_t* p, std::size_t n)
 }
 
 template <typename idx_t>
-static bool run_par_divsufsort(const std::string& text, const std::string& sa_path)
+static bool run_par_divsufsort(const std::string& text, const std::string& sa_path, const std::string& lcp_path, bool generate_lcp)
 {
 	if(text.size() > static_cast<std::size_t>(std::numeric_limits<idx_t>::max())) {
 		std::cerr << "Input is too large for the selected index width." << std::endl;
@@ -57,6 +58,17 @@ static bool run_par_divsufsort(const std::string& text, const std::string& sa_pa
 	if(!sa_path.empty()) {
 		write_sa(sa_path.c_str(), sa.data(), static_cast<std::size_t>(text.size()));
 	}
+
+	if(!lcp_path.empty() || generate_lcp) {
+		auto lcp_start = chrono::steady_clock::now();
+		std::vector<idx_t> lcp = par_plcp<idx_t>((sauchar_t*)text.data(), sa.data(), text.size());
+		auto lcp_end = chrono::steady_clock::now();
+		cout << "par_plcp time: " <<
+			chrono::duration<double, milli>(lcp_end - lcp_start).count() << " ms" << endl;
+		if (!lcp_path.empty()) {
+			write_sa(lcp_path.c_str(), lcp.data(), lcp.size());   // same binary layout as the SA file
+		}
+	}
 	return true;
 }
 
@@ -68,6 +80,12 @@ int main(int argc, char* args[]) {
 
 	std::string sa_path;
 	app.add_option("-w,--output", sa_path, "output SA file path")->default_val("");
+
+	std::string lcp_path;
+	app.add_option("-W,--lcp-path", lcp_path, "output LCP array file path")->default_val("");
+	
+	bool generate_lcp = false;
+	app.add_flag("-l,--lcp", generate_lcp, "generate LCP array")->default_val("false");
 
 	std::size_t threads = 1;
 	app.add_option("-t,--threads", threads, "number of threads to use")->default_val("1");
@@ -96,9 +114,9 @@ int main(int argc, char* args[]) {
 	}
 
 	if(text.size() <= static_cast<std::size_t>(std::numeric_limits<uint32_t>::max())) {
-		return run_par_divsufsort<int32_t>(text, sa_path) ? 0 : -1;
+		return run_par_divsufsort<int32_t>(text, sa_path, lcp_path, generate_lcp) ? 0 : -1;
 	}
-	return run_par_divsufsort<int64_t>(text, sa_path) ? 0 : -1;
+	return run_par_divsufsort<int64_t>(text, sa_path, lcp_path, generate_lcp) ? 0 : -1;
 
 	// num_type *SA = new num_type[size];
 	// for (int i = 0; i < times; ++i) {
