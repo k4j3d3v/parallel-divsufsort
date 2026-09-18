@@ -17,9 +17,9 @@
 #include <omp.h>
 
 template <typename sa_idx_t>
-std::vector<sa_idx_t> par_plcp(const unsigned char* text, const sa_idx_t* sa, std::size_t n)
+void par_plcp(const unsigned char* text, std::vector<sa_idx_t>& sa, std::size_t n)
 {
-	if(n == 0) return {};
+	if(n == 0) return;
 
 	// Phi[i] = the text position whose suffix immediately precedes suffix i
 	// in SA order (or -1 for the lexicographically smallest suffix, which
@@ -67,11 +67,10 @@ std::vector<sa_idx_t> par_plcp(const unsigned char* text, const sa_idx_t* sa, st
 	}
 
 	// PLCP -> LCP: PLCP is indexed by text position, LCP by SA rank.
-	std::vector<sa_idx_t> lcp(n);
-	lcp[0] = 0;
 	#pragma omp parallel for schedule(static)
 	for(std::size_t i = 1; i < n; ++i) {
-		lcp[i] = plcp[sa[i]];
+		sa[i] = plcp[sa[i]];
 	}
-	return lcp;
+	
+	sa[0] = 0;
 }

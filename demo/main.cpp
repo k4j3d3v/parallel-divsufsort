@@ -61,10 +61,21 @@ static bool run_par_divsufsort(const std::string& text, const std::string& sa_pa
 
 	if(!lcp_path.empty() || generate_lcp) {
 		auto lcp_start = chrono::steady_clock::now();
-		std::vector<idx_t> lcp = par_plcp<idx_t>((sauchar_t*)text.data(), sa.data(), text.size());
+		par_plcp<idx_t>((sauchar_t*)text.data(), sa, text.size());
+		auto lcp = sa; // par_plcp returns the LCP array in the same vector as SA, so we can just copy it here.
 		auto lcp_end = chrono::steady_clock::now();
 		cout << "par_plcp time: " <<
 			chrono::duration<double, milli>(lcp_end - lcp_start).count() << " ms" << endl;
+		
+		if (generate_lcp) {
+			double avg_lcp = 0.0;
+			for(std::size_t i = 1; i < lcp.size(); ++i) {
+				avg_lcp += static_cast<double>(lcp[i]);
+			}
+
+			avg_lcp /= static_cast<double>(lcp.size() - 1);
+			cout << "Average LCP: " << avg_lcp << endl;
+		}
 		if (!lcp_path.empty()) {
 			write_sa(lcp_path.c_str(), lcp.data(), lcp.size());   // same binary layout as the SA file
 		}
@@ -85,7 +96,7 @@ int main(int argc, char* args[]) {
 	app.add_option("-W,--lcp-path", lcp_path, "output LCP array file path")->default_val("");
 	
 	bool generate_lcp = false;
-	app.add_flag("-l,--lcp", generate_lcp, "generate LCP array")->default_val("false");
+	app.add_flag("-a,--avglcp", generate_lcp, "compute LCP array and print the average LCP")->default_val("false");
 
 	std::size_t threads = 1;
 	app.add_option("-t,--threads", threads, "number of threads to use")->default_val("1");
